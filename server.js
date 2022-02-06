@@ -30,7 +30,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 app.post('/metadata/:id', (req, res) => {
-    const storageRef = firebase_storage.ref(storage, req.params.id + '.json');
+    const storageRef = firebase_storage.ref(storage, req.params.id);
     firebase_storage.uploadString(storageRef, JSON.stringify(req.body)).then((result) => {
         res.end('success');
     }).catch((error) => {
@@ -39,10 +39,11 @@ app.post('/metadata/:id', (req, res) => {
 })
 
 app.get('/metadata/:id', (req, res) => {
-    const storageRef = firebase_storage.ref(storage, req.params.id + '.json');
-    firebase_storage.getDownloadURL(storageRef).then((url) => {
-        axios.get(url).then((response) => {
-            res.end(response.data);
+    const storageRef = firebase_storage.ref(storage, req.params.id);
+    firebase_storage.getDownloadURL(storageRef).then(data => {
+        axios.get(data).then((response) => {
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            res.end(JSON.stringify(data));
         })
     })
 })
