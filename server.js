@@ -43,7 +43,7 @@ app.get('/metadata/:id', (req, res) => {
     firebase_storage.getDownloadURL(storageRef).then(data => {
         axios.get(data).then((response) => {
             res.writeHead(200, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify(data));
+            res.end(JSON.stringify(response.data));
         })
     })
 })
