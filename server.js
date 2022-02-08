@@ -44,7 +44,11 @@ app.get('/metadata/:id', (req, res) => {
         axios.get(data).then((response) => {
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end(JSON.stringify(response.data));
+        }).catch((error) => {
+            res.end(error);
         })
+    }).catch((error) => {
+        res.end(error);
     })
 })
 
