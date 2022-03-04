@@ -105,6 +105,16 @@ app.get('/user/:wallet_address', (req, res) => {
     })
 })
 
+app.get('/assets', (req, res) => {
+    NFTItem.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
+    })
+})
+
 app.post('/asset/create', (req, res) => {
     const nftmetadata = new NFTMetadata({
         name: req.body.name,
