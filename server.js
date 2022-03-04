@@ -1,55 +1,134 @@
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
 const cors = require('cors');
-const firebase_app = require("firebase/app");
-const firebase_storage = require("firebase/storage");
-const axios = require('axios');
-
-const firebaseConfig = {
-    apiKey: "AIzaSyDJNFAaDSGnNkf-kC-8Ij2FNI6iJznisC8",
-    authDomain: "test-nft-b6e86.firebaseapp.com",
-    projectId: "test-nft-b6e86",
-    storageBucket: "test-nft-b6e86.appspot.com",
-    messagingSenderId: "937764006911",
-    appId: "1:937764006911:web:96b79277857a57466c55ca"
-};
-
-firebase_app.initializeApp(firebaseConfig);
-
-const storage = firebase_storage.getStorage();
-
+const User = require('./model/user');
+const Collection = require('./model/collection');
+const Category = require('./model/category');
+const NFTMetadata = require('./model/nftmetadata');
+const NFTItem = require('./model/nftitem');
 const app = express();
 
 const port = 3001;
+const db = "mongodb+srv://root:root@cluster0.nypxd.mongodb.net/nft-marketplace?retryWrites=true&w=majority";
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
 app.use(cors());
+mongoose.connect(db).then(() => console.log("MongoDB successfully connected")).catch((err) => console.log(err));
 
-app.post('/metadata/:id', (req, res) => {
-    const storageRef = firebase_storage.ref(storage, req.params.id);
-    firebase_storage.uploadString(storageRef, JSON.stringify(req.body)).then((result) => {
-        res.end('success');
-    }).catch((error) => {
-        res.end(error);
+app.post('/login', (req, res) => {
+    User.find({ "wallet_address": req.body.wallet_address }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }));
+        } else {
+            if (result.length) {
+                res.end(JSON.stringify({ "msg": "success", "data": result[0] }));
+            } else {
+                const user = new User({
+                    "name": null,
+                    "wallet_address": req.body.wallet_address,
+                    "logo_img": null,
+                })
+                user.save((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "msg": "error", "data": error }))
+                    } else {
+                        res.end(JSON.stringify({ "msg": "success", "data": result }))
+                    }
+                })
+            }
+        }
     })
 })
 
-app.get('/metadata/:id', (req, res) => {
-    const storageRef = firebase_storage.ref(storage, req.params.id);
-    firebase_storage.getDownloadURL(storageRef).then(data => {
-        axios.get(data).then((response) => {
-            res.writeHead(200, {'Content-Type': 'application/json'});
-            res.end(JSON.stringify(response.data));
-        }).catch((error) => {
-            res.end(error);
-        })
-    }).catch((error) => {
-        res.end(error);
+app.post('/collection/create', (req, res) => {
+    const collection = new Collection({
+        name: req.body.name,
+        description: req.body.description,
+        owner: req.body.owner,
+        logo_img: req.body.logo_img,
+        royalty: req.body.royalty,
+        category: req.body.category,
+        count: "0",
+    })
+
+    collection.save((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
     })
 })
 
-app.listen(process.env.PORT || port);
+app.get('/category', (req, res) => {
+    Category.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/collections/:wallet_address', (req, res) => {
+    Collection.find({ "owner": req.params.wallet_address }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/collections/', (req, res) => {
+    Collection.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/user/:wallet_address', (req, res) => {
+    User.find({ "wallet_address": req.params.wallet_address }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "msg": "success", "data": result }))
+        }
+    })
+})
+
+app.post('/asset/create', (req, res) => {
+    const nftmetadata = new NFTMetadata({
+        name: req.body.name,
+        description: req.body.description,
+        image_url: req.body.image_url,
+        token_id: req.body.token_id,
+    })
+    nftmetadata.save((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            const nftitem = new NFTItem({
+                id: req.body.token_id,
+                collections: req.body.collection,
+            })
+            nftitem.save((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "msg": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "msg": "success", "data": result }))
+                }
+            })
+        }
+    })
+})
+
+app.listen(port);
