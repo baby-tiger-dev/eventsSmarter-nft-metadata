@@ -131,4 +131,14 @@ app.post('/asset/create', (req, res) => {
     })
 })
 
+app.get('/asset/:token_id', (req, res) => {
+    NFTMetadata.find({ "token_id": req.params.token_id }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "msg": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify(result[0]))
+        }
+    })
+})
+
 app.listen(port);
