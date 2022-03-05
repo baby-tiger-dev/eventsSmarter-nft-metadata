@@ -160,21 +160,11 @@ app.get('/collection/:collection_name', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             nftItem = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
-            NFTMetadata.find().exec((error, result) => {
+            Collection.find({ "name": nftItem[0]?.collections }).exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    nftMetadata = result;
-                    const metadata = lodash.differenceBy(nftMetadata, nftItem, 'token_id');
-                    console.log(metadata);
-                    const data = lodash.differenceBy(nftMetadata, metadata, 'token_id');
-                    Collection.find({ "name": nftItem[0]?.collections }).exec((error, result) => {
-                        if (error) {
-                            res.end(JSON.stringify({ "state": "error", "data": error }))
-                        } else {
-                            res.end(JSON.stringify({ "state": "success", "data": data, "collection": result[0] }))
-                        }
-                    })
+                    res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": result[0] }))
                 }
             })
         }
