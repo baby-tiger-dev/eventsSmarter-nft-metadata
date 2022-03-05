@@ -9,6 +9,7 @@ const Category = require('./model/category');
 const NFTMetadata = require('./model/nftmetadata');
 const NFTItem = require('./model/nftitem');
 const app = express();
+const lodash = require('lodash');
 
 const port = process.env.PORT || 3001;
 const db = "mongodb+srv://root:root@cluster0.nypxd.mongodb.net/nft-marketplace?retryWrites=true&w=majority";
@@ -23,10 +24,10 @@ mongoose.connect(db).then(() => console.log("MongoDB successfully connected")).c
 app.post('/login', (req, res) => {
     User.find({ "wallet_address": req.body.wallet_address }).exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }));
+            res.end(JSON.stringify({ "state": "error", "data": error }));
         } else {
             if (result.length) {
-                res.end(JSON.stringify({ "msg": "success", "data": result[0] }));
+                res.end(JSON.stringify({ "state": "success", "data": result[0] }));
             } else {
                 const user = new User({
                     "name": null,
@@ -35,9 +36,9 @@ app.post('/login', (req, res) => {
                 })
                 user.save((error, result) => {
                     if (error) {
-                        res.end(JSON.stringify({ "msg": "error", "data": error }))
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
-                        res.end(JSON.stringify({ "msg": "success", "data": result }))
+                        res.end(JSON.stringify({ "state": "success", "data": result }))
                     }
                 })
             }
@@ -58,9 +59,9 @@ app.post('/collection/create', (req, res) => {
 
     collection.save((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -68,9 +69,9 @@ app.post('/collection/create', (req, res) => {
 app.get('/category', (req, res) => {
     Category.find().exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -78,9 +79,9 @@ app.get('/category', (req, res) => {
 app.get('/collections/:wallet_address', (req, res) => {
     Collection.find({ "owner": req.params.wallet_address }).exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -88,9 +89,9 @@ app.get('/collections/:wallet_address', (req, res) => {
 app.get('/collections/', (req, res) => {
     Collection.find().exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -98,9 +99,9 @@ app.get('/collections/', (req, res) => {
 app.get('/user/:wallet_address', (req, res) => {
     User.find({ "wallet_address": req.params.wallet_address }).exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -108,9 +109,9 @@ app.get('/user/:wallet_address', (req, res) => {
 app.get('/assets', (req, res) => {
     NFTItem.find().exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "msg": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
@@ -124,7 +125,7 @@ app.post('/asset/create', (req, res) => {
     })
     nftmetadata.save((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             const nftitem = new NFTItem({
                 id: req.body.token_id,
@@ -132,9 +133,9 @@ app.post('/asset/create', (req, res) => {
             })
             nftitem.save((error, result) => {
                 if (error) {
-                    res.end(JSON.stringify({ "msg": "error", "data": error }))
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    res.end(JSON.stringify({ "msg": "success", "data": result }))
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
                 }
             })
         }
@@ -144,9 +145,32 @@ app.post('/asset/create', (req, res) => {
 app.get('/asset/:token_id', (req, res) => {
     NFTMetadata.find({ "token_id": req.params.token_id }).exec((error, result) => {
         if (error) {
-            res.end(JSON.stringify({ "msg": "error", "data": error }))
+            res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             res.end(JSON.stringify(result[0]))
+        }
+    })
+})
+
+app.get('/collection/:collection_name', (req, res) => {
+    let nftItem;
+    let nftMetadata;
+    NFTItem.find({ "collection_name": req.params.collection_name }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            nftItem = result;
+            NFTMetadata.find({ "token_id": item.token_id }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                    nftMetadata = result;
+                    const metadata = lodash.differenceBy(nftMetadata, nftItem, 'token_id');
+                    const data = lodash.differenceBy(nftMetadata, metadata, 'token_id');
+                    res.end(JSON.stringify({ "state": "error", "data": data }))
+                }
+            })
         }
     })
 })
