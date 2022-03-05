@@ -168,7 +168,7 @@ app.get('/collection/:collection_name', (req, res) => {
                     const metadata = lodash.differenceBy(nftMetadata, nftItem, 'token_id');
                     console.log(metadata);
                     const data = lodash.differenceBy(nftMetadata, metadata, 'token_id');
-                    res.end(JSON.stringify({ "state": "success", "data": data }))
+                    res.end(JSON.stringify({ "state": "success", "data": data, "collection": nftItem[0]?.collections }))
                 }
             })
         }
