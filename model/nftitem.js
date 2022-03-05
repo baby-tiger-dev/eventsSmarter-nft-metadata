@@ -25,6 +25,10 @@ const NFTItemSchema = new Schema({
   selling: {
     type: Boolean,
     required: true,
+  },
+  price: {
+    type: String,
+    required: true,
   }
 })
 

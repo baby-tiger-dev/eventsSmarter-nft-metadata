@@ -130,6 +130,11 @@ app.post('/asset/create', (req, res) => {
             const nftitem = new NFTItem({
                 id: req.body.token_id,
                 collections: req.body.collection,
+                name: req.body.name,
+                description: req.body.description,
+                image_url: req.body.image_url,
+                selling: false,
+                price: 0.0,
             })
             nftitem.save((error, result) => {
                 if (error) {
