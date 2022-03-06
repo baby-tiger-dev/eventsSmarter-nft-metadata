@@ -159,7 +159,7 @@ app.get('/asset/:token_id', (req, res) => {
 
 app.get('/collection/:collection_name', (req, res) => {
     let nftItem;
-    let nftMetadata;
+    let collection;
     NFTItem.find().exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
@@ -169,7 +169,14 @@ app.get('/collection/:collection_name', (req, res) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": result[0] }))
+                    collection = result[0];
+                    User.find({ "wallet_address": result[0].owner }).exec((error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": collection, "user": result[0] }))
+                        }
+                    })
                 }
             })
         }

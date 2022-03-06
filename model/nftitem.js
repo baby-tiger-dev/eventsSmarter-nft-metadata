@@ -29,6 +29,14 @@ const NFTItemSchema = new Schema({
   price: {
     type: String,
     required: true,
+  },
+  owned: {
+    type: String,
+    required: true,
+  },
+  created: {
+    type: String,
+    required: true,
   }
 })
 
