@@ -257,4 +257,30 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
     })
 })
 
+app.put('/asset/:collection_name/:nft_name/setting', (req, res) => {
+    let nftItem;
+    let collection;
+    Collection.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name });
+            NFTItem.find({ "collections": collection[0].name }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name })
+                    nftItem.save((error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            res.end(JSON.stringify({ "state": "success", "data": result }))
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
 app.listen(port);
