@@ -246,7 +246,7 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
                                 if (error) {
                                     res.end(JSON.stringify({ "state": "error", "data": error }))
                                 } else {
-                                    res.end(JSON.stringify({ "state": "success", "data": nftItem[0], "collection": collection[0], "owner": owner[0], "creator": result[0] }))
+                                    res.end(JSON.stringify({ "state": "success", "data": nftItem[0], "collection": collection[0], "owner": owner, "creator": result[0] }))
                                 }
                             })
                         }
