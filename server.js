@@ -257,7 +257,7 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
     })
 })
 
-app.post('/asset/:collection_name/:nft_name/selling', (req, res) => {
+app.post('/asset/selling/:collection_name/:nft_name', (req, res) => {
     let nftItem;
     let collection;
     Collection.find().exec((error, result) => {
