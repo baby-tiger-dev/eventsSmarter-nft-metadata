@@ -227,7 +227,6 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
     let nftItem;
     let collection;
     let owner;
-    let creator;
     Collection.find().exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
