@@ -30,11 +30,11 @@ const NFTItemSchema = new Schema({
     type: String,
     required: true,
   },
-  owned: {
+  owner: {
     type: String,
     required: true,
   },
-  created: {
+  creater: {
     type: String,
     required: true,
   }
