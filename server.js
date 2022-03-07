@@ -173,6 +173,16 @@ app.get('/collection/is-available/:collection_name', (req, res) => {
     })
 })
 
+app.get('/assets', (req, res) => {
+    NFTItem.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "state": "success", "data": result }))
+        }
+    })
+})
+
 app.get('/collection/:collection_name', (req, res) => {
     let nftItem;
     let collection;
