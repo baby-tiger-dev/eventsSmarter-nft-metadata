@@ -136,7 +136,7 @@ app.post('/asset/create', (req, res) => {
                 owner: req.body.owner,
                 creater: req.body.creater,
                 selling: false,
-                price: 0.0,
+                price: "0.0",
             })
             nftitem.save((error, result) => {
                 if (error) {
