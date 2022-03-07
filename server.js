@@ -200,21 +200,21 @@ app.get('/assets', (req, res) => {
 app.get('/collection/:collection_name', (req, res) => {
     let nftItem;
     let collection;
-    Collection.find({ "name": req.params.collection_name }).exec((error, result) => {
+    Collection.find().exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            collection = result[0];
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name });
             NFTItem.find().exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
                     nftItem = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
-                    User.find({ "wallet_address": collection.owner }).exec((error, result) => {
+                    User.find({ "wallet_address": collection[0].owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
-                            res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": collection, "user": result[0] }))
+                            res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": collection[0], "user": result[0] }))
                         }
                     })
                 }
