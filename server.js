@@ -257,7 +257,7 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
     })
 })
 
-app.put('/asset/:collection_name/:nft_name/setting', (req, res) => {
+app.put('/asset/:collection_name/:nft_name/selling', (req, res) => {
     let nftItem;
     let collection;
     Collection.find().exec((error, result) => {
@@ -270,6 +270,7 @@ app.put('/asset/:collection_name/:nft_name/setting', (req, res) => {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
                     nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name })
+                    nftItem.selling = req.body.selling
                     nftItem.save((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
