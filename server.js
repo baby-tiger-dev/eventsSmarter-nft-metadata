@@ -162,17 +162,17 @@ app.get('/asset/:token_id', (req, res) => {
 app.get('/collection/:collection_name', (req, res) => {
     let nftItem;
     let collection;
-    NFTItem.find().exec((error, result) => {
+    Collection.find({ "name": req.params.collection_name }).exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            nftItem = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
-            Collection.find({ "name": nftItem[0]?.collections }).exec((error, result) => {
+            collection = result[0];
+            NFTItem.find().exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    collection = result[0];
-                    User.find({ "wallet_address": result[0]?.owner }).exec((error, result) => {
+                    result = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
+                    User.find({ "wallet_address": collection.owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
