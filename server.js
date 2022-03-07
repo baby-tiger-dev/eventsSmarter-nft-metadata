@@ -143,7 +143,19 @@ app.post('/asset/create', (req, res) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                    Collection.find({ "name": req.body.collection }).exec((error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            Collection.findOneAndUpdate({ "name": req.body.collection }, { "count": result[0].count + 1 }, (error, result) => {
+                                if (error) {
+                                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                                } else {
+                                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                                }
+                            })
+                        }
+                    })
                 }
             })
         }
