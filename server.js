@@ -171,7 +171,7 @@ app.get('/collection/:collection_name', (req, res) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    result = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
+                    nftItem = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
                     User.find({ "wallet_address": collection.owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
