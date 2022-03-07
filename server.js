@@ -223,4 +223,39 @@ app.get('/collection/:collection_name', (req, res) => {
     })
 })
 
+app.get('/asset/:collection_name/:nft_name', (req, res) => {
+    let nftItem;
+    let collection;
+    let owner;
+    let creator;
+    Collection.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name });
+            NFTItem.find({ "collections": collection[0].name }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name })
+                    User.find({ "wallet_address": nftItem[0].owner }).exec((error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            owner = result[0];
+                            User.find({ "wallet_address": nftItem[0].creator }).exec((error, result) => {
+                                if (error) {
+                                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                                } else {
+                                    res.end(JSON.stringify({ "state": "success", "data": nftItem, "collection": collection[0], "owner": owner, "creator": result[0] }))
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
 app.listen(port);
