@@ -134,9 +134,10 @@ app.post('/asset/create', (req, res) => {
                 token_id: req.body.token_id,
                 collections: req.body.collection,
                 owner: req.body.owner,
-                creater: req.body.creater,
+                creator: req.body.creator,
                 selling: false,
                 price: "0.0",
+                type: "ETH",
             })
             nftitem.save((error, result) => {
                 if (error) {

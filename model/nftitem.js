@@ -34,7 +34,7 @@ const NFTItemSchema = new Schema({
     type: String,
     required: true,
   },
-  creater: {
+  creator: {
     type: String,
     required: true,
   }
