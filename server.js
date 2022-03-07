@@ -172,7 +172,7 @@ app.get('/collection/:collection_name', (req, res) => {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
                     collection = result[0];
-                    User.find({ "wallet_address": result[0].owner }).exec((error, result) => {
+                    User.find({ "wallet_address": result[0]?.owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
