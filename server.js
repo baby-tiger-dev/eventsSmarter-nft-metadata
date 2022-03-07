@@ -54,7 +54,7 @@ app.post('/collection/create', (req, res) => {
         logo_img: req.body.logo_img,
         royalty: req.body.royalty,
         category: req.body.category,
-        count: "0",
+        count: 0,
     })
 
     collection.save((error, result) => {
@@ -86,7 +86,7 @@ app.get('/collections/:wallet_address', (req, res) => {
     })
 })
 
-app.get('/collections/', (req, res) => {
+app.get('/collections', (req, res) => {
     Collection.find().exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
@@ -106,8 +106,8 @@ app.get('/user/:wallet_address', (req, res) => {
     })
 })
 
-app.get('/assets', (req, res) => {
-    NFTItem.find().exec((error, result) => {
+app.get('/assets/:wallet_address', (req, res) => {
+    NFTItem.find({ "owner": req.params.wallet_address }).exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
@@ -128,15 +128,15 @@ app.post('/asset/create', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             const nftitem = new NFTItem({
-                collections: req.body.collection,
                 name: req.body.name,
                 description: req.body.description,
                 image_url: req.body.image_url,
-                selling: false,
-                price: 0.0,
                 token_id: req.body.token_id,
+                collections: req.body.collection,
                 owner: req.body.owner,
                 creater: req.body.creater,
+                selling: false,
+                price: 0.0,
             })
             nftitem.save((error, result) => {
                 if (error) {
