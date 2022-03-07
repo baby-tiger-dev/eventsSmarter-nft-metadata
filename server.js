@@ -143,6 +143,7 @@ app.post('/asset/create', (req, res) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
+                    const item = result;
                     Collection.find({ "name": req.body.collection }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
@@ -151,7 +152,7 @@ app.post('/asset/create', (req, res) => {
                                 if (error) {
                                     res.end(JSON.stringify({ "state": "error", "data": error }))
                                 } else {
-                                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                                    res.end(JSON.stringify({ "state": "success", "data": item, "collection": result }))
                                 }
                             })
                         }
