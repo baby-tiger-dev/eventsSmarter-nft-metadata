@@ -26,8 +26,12 @@ const NFTItemSchema = new Schema({
     type: Boolean,
     required: true,
   },
+  royalty: {
+    type: Number,
+    required: true
+  },
   price: {
-    type: String,
+    type: Number,
     required: true,
   },
   owner: {
@@ -36,6 +40,21 @@ const NFTItemSchema = new Schema({
   },
   creator: {
     type: String,
+    required: true,
+  },
+  selling_count: {
+    type: Number,
+    required: true,
+  },
+  favourite_count: {
+    type: Number,
+    required: true,
+  },
+  selling_time: {
+    type: Date,
+  },
+  view_count: {
+    type: Number,
     required: true,
   }
 })

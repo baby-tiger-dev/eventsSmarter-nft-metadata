@@ -10,6 +10,7 @@ const NFTMetadata = require('./model/nftmetadata');
 const NFTItem = require('./model/nftitem');
 const app = express();
 const lodash = require('lodash');
+const Favourite = require('./model/favourite');
 
 const port = process.env.PORT || 3001;
 const db = "mongodb+srv://root:root@cluster0.nypxd.mongodb.net/nft-marketplace?retryWrites=true&w=majority";
@@ -32,7 +33,8 @@ app.post('/login', (req, res) => {
                 const user = new User({
                     "name": null,
                     "wallet_address": req.body.wallet_address,
-                    "logo_img": null,
+                    "image_url": null,
+                    "crypto_amount": 0,
                 })
                 user.save((error, result) => {
                     if (error) {
@@ -51,8 +53,7 @@ app.post('/collection/create', (req, res) => {
         name: req.body.name,
         description: req.body.description,
         owner: req.body.owner,
-        logo_img: req.body.logo_img,
-        royalty: req.body.royalty,
+        image_url: req.body.image_url,
         category: req.body.category,
         count: 0,
     })
@@ -81,7 +82,20 @@ app.get('/collections/:wallet_address', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "state": "success", "data": result }))
+            let users = []
+            let collections = result;
+            collections.map((value, index) => {
+                User.find({ wallet_address: value.owner }).exec((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                    } else {
+                        users.push(result[0])
+                        if (users.length === collections.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
+                        }
+                    }
+                })
+            })
         }
     })
 })
@@ -91,7 +105,20 @@ app.get('/collections', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "state": "success", "data": result }))
+            let users = []
+            let collections = result;
+            collections.map((value, index) => {
+                User.find({ wallet_address: value.owner }).exec((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                    } else {
+                        users.push(result[0])
+                        if (users.length === collections.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
+                        }
+                    }
+                })
+            })
         }
     })
 })
@@ -136,8 +163,10 @@ app.post('/asset/create', (req, res) => {
                 owner: req.body.owner,
                 creator: req.body.creator,
                 selling: false,
-                price: "0.0",
+                price: 0.0,
                 type: "ETH",
+                selling_count: 0,
+                favourite_count: 0,
             })
             nftitem.save((error, result) => {
                 if (error) {
@@ -204,13 +233,13 @@ app.get('/collection/:collection_name', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name });
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name.toLowerCase() });
             NFTItem.find().exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
                     nftItem = lodash.filter(result, (item) => { return item.collections.toLowerCase() === req.params.collection_name })
-                    User.find({ "wallet_address": collection[0].owner }).exec((error, result) => {
+                    User.find({ "wallet_address": collection[0]?.owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
@@ -231,12 +260,12 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name });
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name.toLowerCase() });
             NFTItem.find({ "collections": collection[0].name }).exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name })
+                    nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name.toLowerCase() })
                     User.find({ "wallet_address": nftItem[0].owner }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
@@ -257,9 +286,38 @@ app.get('/asset/:collection_name/:nft_name', (req, res) => {
     })
 })
 
+app.get('/find/topItem', (req, res) => {
+    NFTItem.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            let top = { selling_count: -1 };
+            for (let i = 0; i < result.length; i++) {
+                if (top.selling_count < result[i].selling_count) {
+                    top = result[i];
+                }
+            }
+            res.end(JSON.stringify({ "state": "success", "data": top }))
+        }
+    })
+})
+
+app.get('/find/topSeller', (req, res) => {
+    User.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            const data = lodash.orderBy(result, ['crypto_amount'], ['desc'])
+            const sending = lodash.slice(data, 0, data.length > 10 ? 10 : data.length);
+            res.end(JSON.stringify({ "state": "success", "data": sending }))
+        }
+    })
+})
+
 app.put('/asset/:collection_name/:nft_name/selling', (req, res) => {
     let nftItem;
     let collection;
+    let owner;
     Collection.find().exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
@@ -270,19 +328,229 @@ app.put('/asset/:collection_name/:nft_name/selling', (req, res) => {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
                     nftItem = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.nft_name })
+                    owner = nftItem[0].owner;
                     nftItem[0].selling = req.body.selling;
                     nftItem[0].price = req.body.price;
                     nftItem[0].owner = req.body.owner;
+                    nftItem[0].selling_time = new Date();
                     nftItem[0].save((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
-                            res.end(JSON.stringify({ "state": "success", "data": result }))
+                            if (req.body.type === "buy") {
+                                User.find({ wallet_address: owner }).exec((error, result) => {
+                                    if (error) {
+                                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                                    } else {
+                                        result[0].crypto_amount += parseFloat(req.body.price)
+                                        result[0].save((error, result) => {
+                                            if (error) {
+                                                res.end(JSON.stringify({ "state": "error", "data": error }))
+                                            } else {
+                                                res.end(JSON.stringify({ "state": "success", "data": result }))
+                                            }
+                                        })
+                                    }
+                                })
+                            }
                         }
                     })
                 }
             })
         }
+    })
+})
+
+app.post('/history', (req, res) => {
+    let history_data = [];
+    req.body.data.map((value, index) => {
+        User.find({ "wallet_address": value.user }).exec((error, result) => {
+            if (error) {
+                res.end(JSON.stringify({ "state": "error", "data": error }))
+            } else {
+                history_data.push({ ...value, "owner_name": result[0]?.name, "image_url": result[0]?.image_url })
+                if (history_data.length === req.body.data.length) {
+                    res.end(JSON.stringify({ "state": "success", "data": history_data }))
+                }
+            }
+        })
+    })
+})
+
+app.post('/favourite/add', (req, res) => {
+    const fav = new Favourite({
+        wallet_address: req.body.wallet_address,
+        token_id: req.body.token_id,
+    })
+
+    fav.save((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            NFTItem.find({ "token_id": req.body.token_id }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    NFTItem.findOneAndUpdate({ "token_id": req.body.token_id }, { "favourite_count": result[0].favourite_count + 1 }, (error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            res.end(JSON.stringify({ "state": "success", "data": result.favourite_count + 1 }))
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
+app.post('/favourite/remove', (req, res) => {
+    Favourite.deleteOne({ wallet_address: req.body.wallet_address, token_id: req.body.token_id }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            NFTItem.find({ "token_id": req.body.token_id }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    NFTItem.findOneAndUpdate({ "token_id": req.body.token_id }, { "favourite_count": result[0].favourite_count - 1 }, (error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            res.end(JSON.stringify({ "state": "success", "data": result.favourite_count - 1 }))
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
+
+app.get('/favourite/:wallet_address', (req, res) => {
+    Favourite.find({ wallet_address: req.params.wallet_address }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "state": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/favourite/:wallet_address/:token_id', (req, res) => {
+    Favourite.find({ wallet_address: req.params.wallet_address, token_id: req.params.token_id }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "state": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/find/todayPicks', (req, res) => {
+    NFTItem.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            const today = new Date();
+            today.setHours(0);
+            today.setMinutes(0);
+            today.setSeconds(0);
+            today.setMilliseconds(0);
+            const data = result.filter((value) => value.selling_time >= today && value.selling)
+            let final_data = [];
+            data.map((value, index) => {
+                User.find({ wallet_address: value.owner }).exec((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                    } else {
+                        final_data.push(result[0]);
+                        if (final_data.length === data.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": data, "users": final_data }))
+                        }
+                    }
+                })
+            })
+        }
+    })
+})
+
+app.get('/find/topCollection', (req, res) => {
+    Collection.find().exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            const data = result.slice(0, result.length > 10 ? 10 : result.length);
+            let final_data = [];
+            data.map((value, index) => {
+                User.find({ wallet_address: value.owner }).exec((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                    } else {
+                        final_data.push(result[0]);
+                        if (data.length === final_data.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": data, "users": final_data }))
+                        }
+                    }
+                })
+            })
+        }
+    })
+})
+
+app.post('/user/:wallet_address/update', (req, res) => {
+    User.findOneAndUpdate({ wallet_address: req.params.wallet_address }, { name: req.body.name, email: req.body.email, image_url: req.body.image_url }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            result[0].name = req.body.name
+            result[0].email = req.body.email
+            result[0].image_url = req.body.image_url
+            result[0].save((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                }
+            })
+        }
+    })
+})
+
+app.put('/user/:wallet_address/addAmount', (req, res) => {
+    User.find({ wallet_address: req.params.wallet_address }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            res.end(JSON.stringify({ "state": "success", "data": result }))
+        }
+    })
+})
+
+app.get('/user/:wallet_address/favourite', (req, res) => {
+    let favourite_data = [];
+    let users = [];
+    let items = [];
+    Favourite.find({ wallet_address: req.params.wallet_address }).exec((error, result) => {
+        favourite_data = result;
+        favourite_data.map((value) => {
+            NFTItem.find({ "token_id": value.token_id }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    items.push(result[0]);
+                    User.find({ "wallet_address": result[0].creator }).exec((error, result) => {
+                        if (error) {
+                            res.end(JSON.stringify({ "state": "error", "data": error }))
+                        } else {
+                            users.push(result[0]);
+                            if (items.length === favourite_data.length) {
+                                res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
+                            }
+                        }
+                    })
+                }
+            })
+        })
     })
 })
 

@@ -13,11 +13,7 @@ const CollectionSchema = new Schema({
         type: String,
         required: true,
     },
-    logo_img: {
-        type: String,
-        required: true,
-    },
-    royalty: {
+    image_url: {
         type: String,
         required: true,
     },
