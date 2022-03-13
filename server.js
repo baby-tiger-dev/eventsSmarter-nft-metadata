@@ -502,16 +502,7 @@ app.post('/user/:wallet_address/update', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            result[0].name = req.body.name
-            result[0].email = req.body.email
-            result[0].image_url = req.body.image_url
-            result[0].save((error, result) => {
-                if (error) {
-                    res.end(JSON.stringify({ "state": "error", "data": error }))
-                } else {
-                    res.end(JSON.stringify({ "state": "success", "data": result }))
-                }
-            })
+            res.end(JSON.stringify({ "state": "success", "data": result }))
         }
     })
 })
