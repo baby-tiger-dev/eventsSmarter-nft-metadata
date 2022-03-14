@@ -162,11 +162,13 @@ app.post('/asset/create', (req, res) => {
                 collections: req.body.collection,
                 owner: req.body.owner,
                 creator: req.body.creator,
+                royalty: req.body.royalty,
                 selling: false,
                 price: 0.0,
                 type: "ETH",
                 selling_count: 0,
                 favourite_count: 0,
+                view_count: 0,
             })
             nftitem.save((error, result) => {
                 if (error) {
