@@ -89,7 +89,7 @@ app.get('/collections/:wallet_address', (req, res) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
-                        users.push(result[0])
+                        users[index] = result[0]
                         if (users.length === collections.length) {
                             res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
                         }
@@ -112,7 +112,7 @@ app.get('/collections', (req, res) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
-                        users.push(result[0])
+                        users[index] = result[0]
                         if (users.length === collections.length) {
                             res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
                         }
@@ -128,7 +128,7 @@ app.get('/user/:wallet_address', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "state": "success", "data": result }))
+            res.end(JSON.stringify({ "state": "success", "data": result[0] }))
         }
     })
 })
@@ -457,15 +457,15 @@ app.get('/find/todayPicks', (req, res) => {
             today.setSeconds(0);
             today.setMilliseconds(0);
             const data = result.filter((value) => value.selling_time >= today && value.selling)
-            let final_data = [];
+            let users = [];
             data.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
-                        final_data.push(result[0]);
-                        if (final_data.length === data.length) {
-                            res.end(JSON.stringify({ "state": "success", "data": data, "users": final_data }))
+                        users[index] = result[0];
+                        if (users.length === data.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": data, "users": users }))
                         }
                     }
                 })
@@ -480,15 +480,15 @@ app.get('/find/topCollection', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             const data = result.slice(0, result.length > 10 ? 10 : result.length);
-            let final_data = [];
+            let user = [];
             data.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
-                        final_data.push(result[0]);
-                        if (data.length === final_data.length) {
-                            res.end(JSON.stringify({ "state": "success", "data": data, "users": final_data }))
+                        user[index] = result[0];
+                        if (data.length === user.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": data, "users": user }))
                         }
                     }
                 })
