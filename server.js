@@ -83,6 +83,7 @@ app.get('/collections/:wallet_address', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             let users = []
+            let count = 0;
             let collections = result;
             collections.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
@@ -90,7 +91,8 @@ app.get('/collections/:wallet_address', (req, res) => {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
                         users[index] = result[0]
-                        if (users.length === collections.length) {
+                        count++;
+                        if (count === collections.length) {
                             res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
                         }
                     }
@@ -106,6 +108,7 @@ app.get('/collections', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             let users = []
+            let count = 0;
             let collections = result;
             collections.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
@@ -113,7 +116,8 @@ app.get('/collections', (req, res) => {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
                         users[index] = result[0]
-                        if (users.length === collections.length) {
+                        count++;
+                        if (count === collections.length) {
                             res.end(JSON.stringify({ "state": "success", "data": collections, "users": users }))
                         }
                     }
@@ -141,13 +145,15 @@ app.get('/assets/:wallet_address', (req, res) => {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             items = result;
+            let count = 0;
             items.map((value, index) => {
                 User.find({ "wallet_address": value.creator }).exec((error, result) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
+                        count++;
                         users[index] = result[0];
-                        if (users.length === items.length) {
+                        if (count === items.length) {
                             res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
                         }
                     }
@@ -379,13 +385,15 @@ app.put('/asset/:collection_name/:nft_name/selling', (req, res) => {
 
 app.post('/history', (req, res) => {
     let history_data = [];
+    let count = 0;
     req.body.data.map((value, index) => {
         User.find({ "wallet_address": value.user }).exec((error, result) => {
             if (error) {
                 res.end(JSON.stringify({ "state": "error", "data": error }))
             } else {
-                history_data.push({ ...value, "owner_name": result[0]?.name, "image_url": result[0]?.image_url })
-                if (history_data.length === req.body.data.length) {
+                history_data[index] = { ...value, "owner_name": result[0]?.name, "image_url": result[0]?.image_url }
+                count++;
+                if (count === req.body.data.length) {
                     res.end(JSON.stringify({ "state": "success", "data": history_data }))
                 }
             }
@@ -474,13 +482,15 @@ app.get('/find/todayPicks', (req, res) => {
             today.setMilliseconds(0);
             const data = result.filter((value) => value.selling_time >= today && value.selling)
             let users = [];
+            let count = 0;
             data.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
+                        count++;
                         users[index] = result[0];
-                        if (users.length === data.length) {
+                        if (count === data.length) {
                             res.end(JSON.stringify({ "state": "success", "data": data, "users": users }))
                         }
                     }
@@ -541,6 +551,7 @@ app.get('/user/:wallet_address/favourite', (req, res) => {
     let items = [];
     Favourite.find({ wallet_address: req.params.wallet_address }).exec((error, result) => {
         favourite_data = result;
+        let count = 0;
         favourite_data.map((value, index) => {
             NFTItem.find({ "token_id": value.token_id }).exec((error, result) => {
                 if (error) {
@@ -551,8 +562,9 @@ app.get('/user/:wallet_address/favourite', (req, res) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
+                            count++;
                             users[index] = result[0];
-                            if (items.length === favourite_data.length) {
+                            if (count === favourite_data.length) {
                                 res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
                             }
                         }
