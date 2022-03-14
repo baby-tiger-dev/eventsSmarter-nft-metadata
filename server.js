@@ -495,15 +495,17 @@ app.get('/find/topCollection', (req, res) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            const data = result.slice(0, result.length > 10 ? 10 : result.length);
+            const data = result.slice(0, result.length > 3 ? 3 : result.length);
             let user = [];
+            let count = 0;
             data.map((value, index) => {
                 User.find({ wallet_address: value.owner }).exec((error, result) => {
                     if (error) {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
                         user[index] = result[0];
-                        if (data.length === user.length) {
+                        count++;
+                        if (data.length === count) {
                             res.end(JSON.stringify({ "state": "success", "data": data, "users": user }))
                         }
                     }
