@@ -134,11 +134,25 @@ app.get('/user/:wallet_address', (req, res) => {
 })
 
 app.get('/assets/:wallet_address', (req, res) => {
+    let items = []
+    let users = []
     NFTItem.find({ "owner": req.params.wallet_address }).exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
-            res.end(JSON.stringify({ "state": "success", "data": result }))
+            items = result;
+            items.map((value, index) => {
+                User.find({ "wallet_address": value.creator }).exec((error, result) => {
+                    if (error) {
+                        res.end(JSON.stringify({ "state": "error", "data": error }))
+                    } else {
+                        users[index] = result[0];
+                        if (users.length === item.length) {
+                            res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
+                        }
+                    }
+                })
+            })
         }
     })
 })
@@ -525,17 +539,17 @@ app.get('/user/:wallet_address/favourite', (req, res) => {
     let items = [];
     Favourite.find({ wallet_address: req.params.wallet_address }).exec((error, result) => {
         favourite_data = result;
-        favourite_data.map((value) => {
+        favourite_data.map((value, index) => {
             NFTItem.find({ "token_id": value.token_id }).exec((error, result) => {
                 if (error) {
                     res.end(JSON.stringify({ "state": "error", "data": error }))
                 } else {
-                    items.push(result[0]);
+                    items[index] = result[0];
                     User.find({ "wallet_address": result[0].creator }).exec((error, result) => {
                         if (error) {
                             res.end(JSON.stringify({ "state": "error", "data": error }))
                         } else {
-                            users.push(result[0]);
+                            users[index] = result[0];
                             if (items.length === favourite_data.length) {
                                 res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
                             }
