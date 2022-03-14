@@ -147,7 +147,7 @@ app.get('/assets/:wallet_address', (req, res) => {
                         res.end(JSON.stringify({ "state": "error", "data": error }))
                     } else {
                         users[index] = result[0];
-                        if (users.length === item.length) {
+                        if (users.length === items.length) {
                             res.end(JSON.stringify({ "state": "success", "data": items, "users": users }))
                         }
                     }
