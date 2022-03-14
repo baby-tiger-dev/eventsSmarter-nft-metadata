@@ -575,4 +575,22 @@ app.get('/user/:wallet_address/favourite', (req, res) => {
     })
 })
 
+app.delete('/delete/:token_id', (req, res) => {
+    let collections;
+    NFTItem.find({ token_id: req.params.token_id }).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            collections = result[0].collections;
+            NFTItem.deleteOne({ token_id: req.params.token_id }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                }
+            })
+        }
+    })
+})
+
 app.listen(port);
