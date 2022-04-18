@@ -11,6 +11,7 @@ const NFTItem = require('./model/nftitem');
 const app = express();
 const lodash = require('lodash');
 const Favourite = require('./model/favourite');
+const collection = require('./model/collection');
 
 const port = process.env.PORT || 3001;
 const db = "mongodb+srv://root:root@cluster0.nypxd.mongodb.net/nft-marketplace?retryWrites=true&w=majority";
@@ -68,16 +69,41 @@ app.post('/collection/create', (req, res) => {
 })
 
 app.post('/collection/:collection_name/update', (req, res) => {
+    let collection;
     Collection.find({}).exec((error, result) => {
         if (error) {
             res.end(JSON.stringify({ "state": "error", "data": error }))
         } else {
             collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name.toLowerCase() });
-            Collection.findOneAndUpdate({ name: collection.name }, {
+            Collection.findOneAndUpdate({ name: collection[0].name }, {
                 name: req.body.name,
                 description: req.body.description,
                 image_url: req.body.image_url,
                 category: req.body.category,
+            }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                }
+            })
+        }
+    })
+})
+
+app.get('/collection/:collection_name/delete', (req, res) => {
+    let collection;
+    Collection.find({}).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name.toLowerCase() });
+            Collection.deleteOne({ name: collection[0].name }).exec((error, result) => {
+                if (error) {
+                    res.end(JSON.stringify({ "state": "error", "data": error }))
+                } else {
+                    res.end(JSON.stringify({ "state": "success", "data": result }))
+                }
             })
         }
     })
