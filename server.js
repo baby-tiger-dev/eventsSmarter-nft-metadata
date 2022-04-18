@@ -67,6 +67,22 @@ app.post('/collection/create', (req, res) => {
     })
 })
 
+app.post('/collection/:collection_name/update', (req, res) => {
+    Collection.find({}).exec((error, result) => {
+        if (error) {
+            res.end(JSON.stringify({ "state": "error", "data": error }))
+        } else {
+            collection = lodash.filter(result, (item) => { return item.name.toLowerCase() === req.params.collection_name.toLowerCase() });
+            Collection.findOneAndUpdate({ name: collection.name }, {
+                name: req.body.name,
+                description: req.body.description,
+                image_url: req.body.image_url,
+                category: req.body.category,
+            })
+        }
+    })
+})
+
 app.get('/category', (req, res) => {
     Category.find().exec((error, result) => {
         if (error) {
